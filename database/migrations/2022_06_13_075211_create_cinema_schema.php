@@ -36,7 +36,63 @@ class CreateCinemaSchema extends Migration
      */
     public function up()
     {
-        throw new \Exception('implement in coding task 4, you can ignore this exception if you are just running the initial migrations.');
+        Schema::create('movies', function($table) {
+            $table->increments('id');
+            $table->string('name');
+            $table->dateTime('start');
+            $table->dateTime('end');
+            $table->timestamps();
+        });
+
+        Schema::create('auditoriums', function($table) {
+            $table->increments('id');
+            $table->string('name');
+            $table->string('seats_no');
+        });
+
+        Schema::create('screenings', function($table) {
+            $table->increments('id');
+            $table->integer('movie_id')->unsigned();
+            $table->foreign('movie_id')->references('id')->on('movies');
+            $table->integer('auditorium_id')->unsigned();
+            $table->foreign('auditorium_id')->references('id')->on('auditoriums')->onDelete('cascade');
+            $table->dateTime('start');
+        });
+
+        Schema::create('seats', function($table) {
+            $table->increments('id');
+            $table->string('row');
+            $table->string('number');
+            $table->integer('auditorium_id')->unsigned();
+            $table->foreign('auditorium_id')->references('id')->on('auditoriums')->onDelete('cascade');
+        });
+
+        
+        Schema::create('reservation_types', function($table) {
+            $table->increments('id');
+            $table->enum('reservation_type', ['VIP', 'Couple Seat', 'Super VIP']);
+        });
+
+        Schema::create('reservation', function($table) {
+            $table->increments('id');
+            $table->integer('screening_id')->unsigned();
+            $table->foreign('screening_id')->references('id')->on('screenings')->onDelete('cascade');
+            $table->integer('reservation_type_id')->unsigned();
+            $table->foreign('reservation_type_id')->references('id')->on('reservation_types')->onDelete('cascade');
+            $table->enum('reserved', ['Y', 'N']);
+            $table->timestamps();
+        });
+        
+
+        Schema::create('seat_reserved', function($table) {
+            $table->increments('id');
+            $table->integer('seat_id')->unsigned();
+            $table->foreign('seat_id')->references('id')->on('seats')->onDelete('cascade');
+            $table->integer('reservation_id')->unsigned();
+            $table->foreign('reservation_id')->references('id')->on('reservation_types')->onDelete('cascade');
+            $table->integer('screening_id')->unsigned();
+            $table->foreign('screening_id')->references('id')->on('screenings')->onDelete('cascade');
+        });
     }
 
     /**
@@ -46,5 +102,12 @@ class CreateCinemaSchema extends Migration
      */
     public function down()
     {
+        Schema::dropIfExists('movies');
+        Schema::dropIfExists('auditoriums');
+        Schema::dropIfExists('screenings');
+        Schema::dropIfExists('seats');
+        Schema::dropIfExists('reservation_types');
+        Schema::dropIfExists('reservation');
+        Schema::dropIfExists('seat_reserved');
     }
 }
